@@ -3,6 +3,16 @@ Description: EC2 creada desde GitHub Actions
 
 Resources:
 
+  WebSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Permitir HTTP
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
   MyEC2:
     Type: AWS::EC2::Instance
     Properties:
@@ -10,14 +20,17 @@ Resources:
       ImageId: ami-0cca150d127c2216f
       InstanceType: t3.micro
 
+      SecurityGroupIds:
+        - !Ref WebSecurityGroup
+
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
-          yum update -y
-          yum install -y httpd
+          dnf update -y
+          dnf install -y httpd
           systemctl enable httpd
           systemctl start httpd
-          echo "<h1>Servidor desplegado desde GitHub Actions</h1>" > /var/www/html/index.html
+          echo "<h1>Hola desde CloudFormation y GitHub Actions</h1>" > /var/www/html/index.html
 
       Tags:
         - Key: Name
@@ -26,3 +39,6 @@ Resources:
 Outputs:
   InstanceId:
     Value: !Ref MyEC2
+
+  PublicIP:
+    Value: !GetAtt MyEC2.PublicIp
